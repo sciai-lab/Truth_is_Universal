@@ -7,9 +7,10 @@ We recommend using conda for Python installation. While we used Python 3.11.9, o
 It's advisable to create a new Python environment before installing the required packages.
 Create and activate the environment:
 ```
-conda create --name truth_is_universal
+conda create --name truth_is_universal python=3.11
 conda activate truth_is_universal
 ```
+Here, `python=3.11` is optional and other versions should be compatible as well. 
 Navigate to your preferred repository location, then clone the repository, enter it, and install the requirements:
 ```
 git clone git@github.com:sciai-lab/Truth_is_Universal.git
