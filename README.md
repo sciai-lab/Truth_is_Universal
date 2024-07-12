@@ -22,14 +22,15 @@ Then, run `generate_acts.py` to generate the activations. For example, to genera
 python generate_acts.py --model_family Llama3 --model_size 8B --model_type chat --layers 11 12 --datasets cities neg_cities --device cuda:0
 ```
 The model runs in float16 precision. Hence, at least 16GB of GPU RAM are required to run Llama3-8B.
-The activations will be stored in the `acts` folder. You can generate the activations for all layers by setting `--layers -1`. You can generate the activations for all topics-specific datasets (defined in the paper) by setting `-- datasets all_topic_specific` and for all datasets by setting `-- datasets all`.
+The activations will be stored in the `acts` folder. You can generate the activations for all layers by setting `--layers -1`. You can generate the activations for all topics-specific datasets (defined in the paper) by setting `--datasets all_topic_specific` and for all datasets by setting `--datasets all`.
 
 ## Repository Structure
-*`generate_acts.py`: For generating activations as described above.
-*`utils.py`: Contains various helper functions, e.g. for loading the activations or for learning the truth directions.
+* `generate_acts.py`: For generating activations as described above.
+* `utils.py`: Contains various helper functions, e.g. for loading the activations or for learning the truth directions.
 
 Jupyter Notebooks:
-*`truth_directions.ipynb`: Code for generating figures from the first four paper sections; from learning truth directions to exploring the dimensionality of the truth subspace. 
+
+* `truth_directions.ipynb`: Code for generating figures from the first four paper sections; from learning truth directions to exploring the dimensionality of the truth subspace. 
 You need to generate the following activations to run this notebook (e.g. for Llama3-8B-Instruct):
 ```
 python generate_acts.py --model_family Llama3 --model_size 8B --model_type chat --layers 12 --datasets all_topic_specific --device cuda:0
