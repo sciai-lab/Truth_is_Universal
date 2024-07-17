@@ -126,23 +126,62 @@ def dataset_sizes(datasets):
         dataset_sizes_dict[dataset] = line_count - 1
     return dataset_sizes_dict
 
-def collect_training_data(datasets, train_set_sizes, model_family, model_size, model_type, layer, center=False, device='cpu'):
-    all_acts, all_labels, all_polarities = [], [], []
+def collect_training_data(dataset_names, train_set_sizes, model_family, model_size
+                          , model_type, layer, return_token_counts = False, **kwargs):
+    """
+    Takes as input the names of datasets in the format
+    [affirmative_dataset1, negated_dataset1, affirmative_dataset2, negated_dataset2, ...]
+    and returns a balanced training dataset of centered activations, activations, labels and polarities
+    """
+    all_acts_centered, all_acts, all_labels, all_polarities = [], [], [], []
+    if return_token_counts:
+        token_counts = []
     
-    for dataset in datasets:
+    for dataset_name in dataset_names:
         dm = DataManager()
-        split = min(train_set_sizes.values()) / train_set_sizes[dataset]
-        dm.add_dataset(dataset, model_family, model_size, model_type, layer, split=split, center=center, device=device)
-        acts, labels = dm.get('train')
+        dm.add_dataset(dataset_name, model_family, model_size, model_type, layer, split=None, center=False, device='cpu')
+        acts, labels = dm.data[dataset_name]
         
-        polarity = -1.0 if 'neg_' in dataset else 1.0
-        polarities = t.full((labels.shape[0],), polarity).to(device)
+        polarity = -1.0 if 'neg_' in dataset_name else 1.0
+        polarities = t.full((labels.shape[0],), polarity)
+
+        # balance the training dataset by including an equal number of activations from each dataset
+        # choose the same subset of statements for affirmative and negated version of the dataset
+        if 'neg_' not in dataset_name:
+            rand_subset = np.random.choice(acts.shape[0], min(train_set_sizes.values()), replace=False)
         
-        all_acts.append(acts)
-        all_labels.append(labels)
-        all_polarities.append(polarities)
+        if return_token_counts:
+            token_counts.append(compute_token_counts(dataset_name, kwargs['tokenizer'])[rand_subset])
+        
+        all_acts_centered.append(acts[rand_subset, :] - t.mean(acts[rand_subset, :], dim=0))
+        all_acts.append(acts[rand_subset, :])
+        all_labels.append(labels[rand_subset])
+        all_polarities.append(polarities[rand_subset])
     
-    return map(t.cat, (all_acts, all_labels, all_polarities))
+    if return_token_counts:
+        return map(t.cat, (all_acts_centered, all_acts, all_labels, all_polarities, token_counts))
+    else:
+        return map(t.cat, (all_acts_centered, all_acts, all_labels, all_polarities))
+    
+def compute_token_counts(dataset_name, tokenizer):
+    # Initialize an empty list to store token counts
+    token_counts = []
+
+    # Open and read the CSV file
+    with open(f"datasets/{dataset_name}.csv", 'r') as file:
+        # Skip the header line
+        next(file)
+        
+        # Iterate over each line in the file
+        for line in file:
+            # Split the line by commas to separate the statement and label
+            statement, label = line.strip().rsplit(',', 1)
+            # Count the number of tokens in the statement
+            input_ids = tokenizer.encode(statement, return_tensors="pt")
+            token_count = input_ids.shape[1]
+            # Append the word count to the list
+            token_counts.append(token_count)
+    return t.tensor(token_counts)
 
 def compute_statistics(results):
     stats = {}
@@ -151,28 +190,28 @@ def compute_statistics(results):
         stds = {dataset: np.std(values) for dataset, values in results[key].items()}
         stats[key] = {'mean': means, 'std': stds}
     return stats
+
+def compute_average_accuracies(results, num_iter):
+    probe_stats = {}
+
+    for probe_type in results:
+        overall_means = []
+        
+        for i in range(num_iter):
+            # Calculate mean accuracy for each dataset in this iteration
+            iteration_means = [results[probe_type][dataset][i] for dataset in results[probe_type]]
+            overall_means.append(np.mean(iteration_means))
+        
+        overall_means = np.array(overall_means)
+        final_mean = np.mean(overall_means)
+        std_dev = np.std(overall_means)
+        
+        probe_stats[probe_type.__name__] = {
+            'mean': final_mean,
+            'std_dev': std_dev
+        }
     
-def learn_truth_directions(acts, labels, polarities):
-    # Check if all polarities are zero (handling both int and float) -> if yes learn only t_g
-    all_polarities_zero = t.allclose(polarities, t.tensor([0.0]), atol=1e-8)
-    
-    if all_polarities_zero:
-        X = labels.reshape(-1, 1)
-    else:
-        X = t.column_stack([labels, labels * polarities])
-
-    # Compute the analytical OLS solution
-    solution = t.linalg.inv(X.T @ X) @ X.T @ acts
-
-    # Extract t_g and t_p
-    if all_polarities_zero:
-        t_g = solution.flatten()
-        t_p = None
-    else:
-        t_g = solution[0, :]
-        t_p = solution[1, :]
-
-    return t_g, t_p
+    return probe_stats
 
      
 

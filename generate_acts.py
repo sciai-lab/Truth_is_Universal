@@ -102,7 +102,6 @@ if __name__ == "__main__":
         for file_path in glob.glob('datasets/**/*.csv', recursive=True):
             dataset_name = os.path.relpath(file_path, 'datasets').replace('.csv', '')
             datasets.append(dataset_name)
-        print(datasets)
 
     t.set_grad_enabled(False)
     tokenizer, model = load_model(args.model_family, args.model_size, args.model_type, args.device)
