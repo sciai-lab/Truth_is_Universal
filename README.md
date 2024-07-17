@@ -27,7 +27,8 @@ The activations will be stored in the `acts` folder. You can generate the activa
 
 ## Repository Structure
 * `generate_acts.py`: For generating activations as described above.
-* `utils.py`: Contains various helper functions, e.g. for loading the activations or for learning the truth directions.
+* `utils.py`: Contains various helper functions, e.g. for loading the activations.
+* `probes.py`: Different classifiers that can be trained on the internal model activations to train statements as true or false.
 
 Jupyter Notebooks:
 
@@ -49,6 +50,6 @@ python generate_acts.py --model_family Llama3 --model_size 8B --model_type chat 
 ```
 
 ## Credit
-The DataManager class in `utils.py` and the script `generate_acts.py` are (up to some modifications) from the <a href="https://github.com/saprmarks/geometry-of-truth">Geometry of Truth GitHub repository by Samuel Marks.</a>
+The DataManager class in `utils.py`, the script `generate_acts.py` and the CCS implementation in `probes.py` are (up to some modifications) from the <a href="https://github.com/saprmarks/geometry-of-truth">Geometry of Truth GitHub repository by Samuel Marks.</a>
 The datasets in the datasets folder were primarily collected from previous papers, all of which are referenced in our paper.
 
