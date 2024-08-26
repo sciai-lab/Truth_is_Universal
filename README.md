@@ -28,7 +28,7 @@ The activations will be stored in the `acts` folder. You can generate the activa
 ## Repository Structure
 * `generate_acts.py`: For generating activations as described above.
 * `utils.py`: Contains various helper functions, e.g. for loading the activations.
-* `probes.py`: Different classifiers that can be trained on the internal model activations to train statements as true or false.
+* `probes.py`: Different classifiers that can be trained on the internal model activations to classify statements as true or false.
 
 Jupyter Notebooks:
 

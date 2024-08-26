@@ -2,9 +2,11 @@ import torch as t
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 
-def learn_truth_directions(acts, labels, polarities):
+def learn_truth_directions(acts_centered, labels, polarities):
     # Check if all polarities are zero (handling both int and float) -> if yes learn only t_g
     all_polarities_zero = t.allclose(polarities, t.tensor([0.0]), atol=1e-8)
+    # Make the sure the labels only have the values -1.0 and 1.0
+    labels = t.where(labels == 0.0, t.tensor(-1.0), labels)
     
     if all_polarities_zero:
         X = labels.reshape(-1, 1)
@@ -12,7 +14,7 @@ def learn_truth_directions(acts, labels, polarities):
         X = t.column_stack([labels, labels * polarities])
 
     # Compute the analytical OLS solution
-    solution = t.linalg.inv(X.T @ X) @ X.T @ acts
+    solution = t.linalg.inv(X.T @ X) @ X.T @ acts_centered
 
     # Extract t_g and t_p
     if all_polarities_zero:
