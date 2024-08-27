@@ -124,4 +124,33 @@ class LRProbe():
 
     def pred(self, acts):
         return t.tensor(self.LR.predict(acts))
+    
+
+class MMProbe(t.nn.Module):
+    def __init__(self, direction, LR):
+        super().__init__()
+        self.direction = direction
+        self.LR = LR
+
+    def forward(self, acts):
+        proj = acts @ self.direction
+        return t.tensor(self.LR.predict(proj[:, None]))
+
+    def pred(self, x):
+        return self(x).round()
+
+    def from_data(acts, labels, device='cpu'):
+        acts, labels
+        pos_acts, neg_acts = acts[labels==1], acts[labels==0]
+        pos_mean, neg_mean = pos_acts.mean(0), neg_acts.mean(0)
+        direction = pos_mean - neg_mean
+        # project activations onto direction
+        proj = acts @ direction
+        # fit bias
+        LR = LogisticRegression(penalty=None, fit_intercept=True)
+        LR.fit(proj[:, None], labels)
+        
+        probe = MMProbe(direction, LR).to(device)
+
+        return probe
 
