@@ -29,7 +29,10 @@ def load_model(model_family: str, model_size: str, model_type: str, device: str)
         else:
             tokenizer = AutoTokenizer.from_pretrained(str(model_path))
             model = AutoModelForCausalLM.from_pretrained(str(model_path))
-        model = model.half()  # storing model in float32 precision -> conversion to float16
+        if model_family == "Gemma2": # Gemma2 requires bfloat16 precision which is only available on new GPUs
+            model = model.to(t.bfloat16) # Convert the model to bfloat16 precision
+        else:
+            model = model.half()  # storing model in float32 precision -> conversion to float16
         return tokenizer, model.to(device)
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     read statements from dataset, record activations in given layers, and save to specified files
     """
     parser = argparse.ArgumentParser(description="Generate activations for statements in a dataset")
-    parser.add_argument("--model_family", default="Llama3", help="Model family to use. Options are Llama2, Llama3 or Gemma.")
+    parser.add_argument("--model_family", default="Llama3", help="Model family to use. Options are Llama2, Llama3, Gemma, Gemma2 or Mistral.")
     parser.add_argument("--model_size", default="8B",
                         help="Size of the model to use. Options for Llama3 are 8B or 70B")
     parser.add_argument("--model_type", default="base", help="Whether to choose base or chat model. Options are base or chat.")

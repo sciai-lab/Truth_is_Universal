@@ -17,13 +17,12 @@ git clone git@github.com:sciai-lab/Truth_is_Universal.git
 cd Truth_is_Universal
 pip install -r requirements.txt
 ```
-This repository provides all datasets used in the paper, but not the associated activation vectors due to their large size. You'll need to generate these activations before running any other code. This requires model weights from the Llama3, Llama2, or Gemma model family. We suggest obtaining these weights from <a href="https://huggingface.co/">Hugging Face</a> (e.g. Llama3-8B-Instruct <a href="https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct">here</a>). Insert the paths to the weight folders into `config.ini`.
+This repository provides all datasets used in the paper, but not the associated activation vectors due to their large size. You'll need to generate these activations before running any other code. This requires model weights from the Llama3, Llama2, Gemma or Gemma2 model family. We suggest obtaining these weights from <a href="https://huggingface.co/">Hugging Face</a> (e.g. Llama3-8B-Instruct <a href="https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct">here</a>). Insert the paths to the weight folders into `config.ini`.
 Then, run `generate_acts.py` to generate the activations. For example, to generate activations for the cities and neg_cities datasets for Llama3-8B-Instruct in layers 11 and 12:
 ```
 python generate_acts.py --model_family Llama3 --model_size 8B --model_type chat --layers 11 12 --datasets cities neg_cities --device cuda:0
 ```
-The model runs in float16 precision. Hence, at least 16GB of GPU RAM are required to run Llama3-8B.
-The activations will be stored in the `acts` folder. You can generate the activations for all layers by setting `--layers -1`. You can generate the activations for all topics-specific datasets (defined in the paper) by setting `--datasets all_topic_specific` and for all datasets by setting `--datasets all`.
+The model runs in float16 precision. Hence, at least 16GB of GPU RAM are required to run Llama3-8B. To run Gemma2 a GPU that supports torch.bfloat16 precision is needed. The activations will be stored in the `acts` folder. You can generate the activations for all layers by setting `--layers -1`. You can generate the activations for all topics-specific datasets (defined in the paper) by setting `--datasets all_topic_specific` and for all datasets by setting `--datasets all`.
 
 ## Repository Structure
 * `generate_acts.py`: For generating activations as described above.
