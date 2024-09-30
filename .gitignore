@@ -1,6 +1,9 @@
 # activations
 **/acts/
 
+# new sae feature
+sae_decomposition.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
