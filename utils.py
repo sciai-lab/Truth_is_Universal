@@ -127,15 +127,13 @@ def dataset_sizes(datasets):
     return dataset_sizes_dict
 
 def collect_training_data(dataset_names, train_set_sizes, model_family, model_size
-                          , model_type, layer, return_token_counts = False, **kwargs):
+                          , model_type, layer, **kwargs):
     """
     Takes as input the names of datasets in the format
     [affirmative_dataset1, negated_dataset1, affirmative_dataset2, negated_dataset2, ...]
     and returns a balanced training dataset of centered activations, activations, labels and polarities
     """
     all_acts_centered, all_acts, all_labels, all_polarities = [], [], [], []
-    if return_token_counts:
-        token_counts = []
     
     for dataset_name in dataset_names:
         dm = DataManager()
@@ -150,39 +148,13 @@ def collect_training_data(dataset_names, train_set_sizes, model_family, model_si
         if 'neg_' not in dataset_name:
             rand_subset = np.random.choice(acts.shape[0], min(train_set_sizes.values()), replace=False)
         
-        if return_token_counts:
-            token_counts.append(compute_token_counts(dataset_name, kwargs['tokenizer'])[rand_subset])
-        
         all_acts_centered.append(acts[rand_subset, :] - t.mean(acts[rand_subset, :], dim=0))
         all_acts.append(acts[rand_subset, :])
         all_labels.append(labels[rand_subset])
         all_polarities.append(polarities[rand_subset])
-    
-    if return_token_counts:
-        return map(t.cat, (all_acts_centered, all_acts, all_labels, all_polarities, token_counts))
-    else:
-        return map(t.cat, (all_acts_centered, all_acts, all_labels, all_polarities))
-    
-def compute_token_counts(dataset_name, tokenizer):
-    # Initialize an empty list to store token counts
-    token_counts = []
 
-    # Open and read the CSV file
-    with open(f"datasets/{dataset_name}.csv", 'r') as file:
-        # Skip the header line
-        next(file)
-        
-        # Iterate over each line in the file
-        for line in file:
-            # Split the line by commas to separate the statement and label
-            statement, label = line.strip().rsplit(',', 1)
-            # Count the number of tokens in the statement
-            input_ids = tokenizer.encode(statement, return_tensors="pt")
-            token_count = input_ids.shape[1]
-            # Append the word count to the list
-            token_counts.append(token_count)
-    return t.tensor(token_counts)
-
+    return map(t.cat, (all_acts_centered, all_acts, all_labels, all_polarities))
+    
 def compute_statistics(results):
     stats = {}
     for key in results:

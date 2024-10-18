@@ -41,24 +41,23 @@ class TTPD():
         self.polarity_direc = None
         self.LR = None
 
-    def from_data(acts_centered, acts, labels, polarities, token_counts, scaling_coeff):
+    def from_data(acts_centered, acts, labels, polarities):
         probe = TTPD()
         probe.t_g, _ = learn_truth_directions(acts_centered, labels, polarities)
         probe.t_g = probe.t_g.numpy()
         probe.polarity_direc = learn_polarity_direction(acts, polarities)
-        acts_2d = probe._project_acts(acts, token_counts, scaling_coeff)
+        acts_2d = probe._project_acts(acts)
         probe.LR = LogisticRegression(penalty=None, fit_intercept=True)
         probe.LR.fit(acts_2d, labels.numpy())
         return probe
     
-    def pred(self, acts, token_counts, scaling_coeff):
-        acts_2d = self._project_acts(acts, token_counts, scaling_coeff)
+    def pred(self, acts):
+        acts_2d = self._project_acts(acts)
         return t.tensor(self.LR.predict(acts_2d))
     
-    def _project_acts(self, acts, token_counts, scaling_coeff):
+    def _project_acts(self, acts):
         proj_t_g = acts.numpy() @ self.t_g
         proj_p = acts.numpy() @ self.polarity_direc.T
-        proj_t_g = proj_t_g * token_counts.numpy()**scaling_coeff
         acts_2d = np.concatenate((proj_t_g[:, None], proj_p), axis=1)
         return acts_2d
 
