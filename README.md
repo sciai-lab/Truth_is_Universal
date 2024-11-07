@@ -1,6 +1,6 @@
 # Truth is Universal
 
-This repository contains the code and datasets necessary to reproduce the results presented in the paper <a href="https://arxiv.org/abs/2407.12831">"Truth is Universal: Robust Detection of Lies in LLMs"</a>.
+This repository contains the code and datasets necessary to reproduce the results presented in the Neurips 2024 paper <a href="https://arxiv.org/abs/2407.12831">"Truth is Universal: Robust Detection of Lies in LLMs"</a>.
 
 ## Set-up
 We recommend using conda for Python installation. While we used Python 3.11.9, other versions should be compatible.
